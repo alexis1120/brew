@@ -112,6 +112,31 @@ end
 
 The referenced formula/cask should be in the same tap, as a reference to a formula/cask from another tap will generate an error if the user doesn't already have it tapped.
 
+### `POST` requests
+
+Some checks require making a `POST` request and that can be accomplished by adding a `method: post` option to the `url` arguments. To specify data to send in the request body, use the `data` or `json` options to provide a hash or string. `data` is used for form/URL-encoded data and `json` is used for JSON data.
+
+```ruby
+livecheck do
+  url "https://example.com/download.php", method: :post, data: {
+    "Name"   => "",
+    "E-mail" => "",
+  }
+  regex(/href=.*?example[._-]v?(\d+(?:\.\d+)+)\.t/i)
+end
+````
+
+livecheck encodes a hash to the appropriate format for `data` or `json` but you can also use a pre-encoded string, if necessary.
+
+```ruby
+livecheck do
+  url "https://example.com/download.php", method: :post, data: "Name=&E-mail="
+  regex(/href=.*?example[._-]v?(\d+(?:\.\d+)+)\.t/i)
+end
+```
+
+`POST` support only applies to strategies that use `Strategy::page_headers` or `::page_content` (directly or indirectly), so it does not apply to `ExtractPlist`, `Git`, `GithubLatest`, or `GithubReleases`.
+
 ### `strategy` blocks
 
 If the upstream version format needs to be manipulated to match the formula/cask format, a `strategy` block can be used instead of a `regex`.
