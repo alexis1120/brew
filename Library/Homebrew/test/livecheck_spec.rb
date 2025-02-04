@@ -109,6 +109,11 @@ RSpec.describe Livecheck do
       livecheck_f.strategy(:page_match)
       expect(livecheck_f.strategy).to eq(:page_match)
     end
+
+    it "sets `strategy_block` when provided" do
+      livecheck_f.strategy(:page_match) { "1.2.3" }
+      expect(livecheck_f.strategy_block).to be_a(Proc)
+    end
   end
 
   describe "#throttle" do
