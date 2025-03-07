@@ -1,4 +1,4 @@
----
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 logo: /assets/img/linuxbrew.png
 image: /assets/img/linuxbrew.png
 redirect_from:
