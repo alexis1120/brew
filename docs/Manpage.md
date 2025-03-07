@@ -102,6 +102,15 @@ If no search term is provided, all locally available formulae are listed.
 
 ## COMMANDS
 
+### `alias` \[*`alias`* ... \| *`alias`*=*`command`*\]
+
+Show existing aliases. If no aliases are given, print the whole list.
+
+`--edit`
+
+: Edit aliases in a text editor. Either one or all aliases may be opened at
+  once. If the given alias doesn't exist it'll be pre-populated with a template.
+
 ### `analytics` \[*`subcommand`*\]
 
 Control Homebrew's anonymous aggregate user behaviour analytics. Read more at
@@ -1259,6 +1268,10 @@ provided, display brief statistics for all installed taps.
   accepted value for *`version`* is `v1`. See the docs for examples of using the
   JSON output: <https://docs.brew.sh/Querying-Brew>
 
+### `unalias` *`alias`* \[...\]
+
+Remove aliases.
+
 ### `uninstall`, `remove`, `rm` \[*`options`*\] *`installed_formula`*\|*`installed_cask`* \[...\]
 
 Uninstall a *`formula`* or *`cask`*.
@@ -2066,10 +2079,10 @@ Summarise contributions to Homebrew repositories.
 `--repositories`
 
 : Specify a comma-separated list of repositories to search. Supported
-  repositories: `brew`, `core`, `cask`, `aliases`, `bundle`,
-  `command-not-found`, `test-bot` and `services`. Omitting this flag, or
-  specifying `--repositories=primary`, searches only the main repositories:
-  brew,core,cask. Specifying `--repositories=all`, searches all repositories.
+  repositories: `brew`, `core`, `cask`, `bundle`, `command-not-found`,
+  `test-bot` and `services`. Omitting this flag, or specifying
+  `--repositories=primary`, searches only the main repositories: brew,core,cask.
+  Specifying `--repositories=all`, searches all repositories.
 
 `--from`
 
@@ -2140,6 +2153,10 @@ see: <https://rubydoc.brew.sh/Formula>
 `--rust`
 
 : Create a basic template for a Rust build.
+
+`--zig`
+
+: Create a basic template for a Zig build.
 
 `--no-fetch`
 
@@ -2267,6 +2284,82 @@ form of *`user`*`/`*`repo`*`/`*`formula`*.
 ### `formula` *`formula`* \[...\]
 
 Display the path where *`formula`* is located.
+
+### `formula-analytics`
+
+Query Homebrew's analytics.
+
+`--days-ago`
+
+: Query from the specified days ago until the present. The default is 30 days.
+
+`--install`
+
+: Output the number of specifically requested installations or installation as
+  dependencies of the formula. This is the default.
+
+`--cask-install`
+
+: Output the number of installations of casks.
+
+`--install-on-request`
+
+: Output the number of specifically requested installations of the formula.
+
+`--build-error`
+
+: Output the number of build errors for the formulae.
+
+`--os-version`
+
+: Output OS versions.
+
+`--homebrew-devcmdrun-developer`
+
+: Output devcmdrun/HOMEBREW\_DEVELOPER.
+
+`--homebrew-os-arch-ci`
+
+: Output OS/Architecture/CI.
+
+`--homebrew-prefixes`
+
+: Output Homebrew prefixes.
+
+`--homebrew-versions`
+
+: Output Homebrew versions.
+
+`--brew-command-run`
+
+: Output `brew` commands run.
+
+`--brew-command-run-options`
+
+: Output `brew` commands run with options.
+
+`--brew-test-bot-test`
+
+: Output `brew test-bot` steps run.
+
+`--json`
+
+: Output JSON. This is required: plain text support has been removed.
+
+`--all-core-formulae-json`
+
+: Output a different JSON format containing the JSON data for all
+  Homebrew/homebrew-core formulae.
+
+`--setup`
+
+: Install the necessary gems, require them and exit without running a query.
+
+### `generate-analytics-api`
+
+Generates analytics API data files for formulae.brew.sh.
+
+The generated files are written to the current directory.
 
 ### `generate-cask-api` \[`--dry-run`\]
 
@@ -2906,6 +2999,11 @@ Update versions for PyPI resource blocks in *`formula`*.
 
 : Suppress any output.
 
+`--ignore-errors`
+
+: Record all discovered resources, even those that can't be resolved
+  successfully. This option is ignored for homebrew/core formulae.
+
 `--ignore-non-pypi-packages`
 
 : Don't fail if *`formula`* is not a PyPI package.
@@ -3097,15 +3195,6 @@ These options are applicable across multiple subcommands.
 
 ## OFFICIAL EXTERNAL COMMANDS
 
-### `alias` \[*`alias`* ... \| *`alias`*=*`command`*\]
-
-Show existing aliases. If no aliases are given, print the whole list.
-
-`--edit`
-
-: Edit aliases in a text editor. Either one or all aliases may be opened at
-  once. If the given alias doesn't exist it'll be pre-populated with a template.
-
 ### `bundle` \[*`subcommand`*\]
 
 Bundler for non-Ruby dependencies from Homebrew, Homebrew Cask, Mac App Store,
@@ -3131,7 +3220,7 @@ to one or more of the following environment variables:
 `brew bundle dump`
 
 : Write all installed casks/formulae/images/taps into a `Brewfile` in the
-  current directory.
+  current directory or to a custom file specified with the `--file` option.
 
 `brew bundle cleanup`
 
@@ -3182,13 +3271,13 @@ flags which will help with finding keg-only dependencies like `openssl`,
 
 `--file`
 
-: Read the `Brewfile` from this location. Use `--file=-` to pipe to
-  stdin/stdout.
+: Read from or write to the `Brewfile` from this location. Use `--file=-` to
+  pipe to stdin/stdout.
 
 `--global`
 
-: Read the `Brewfile` from `$HOMEBREW_BUNDLE_FILE_GLOBAL` (if set),
-  `${XDG_CONFIG_HOME}/homebrew/Brewfile` (if `$XDG_CONFIG_HOME` is set),
+: Read from or write to the `Brewfile` from `$HOMEBREW_BUNDLE_FILE_GLOBAL` (if
+  set), `${XDG_CONFIG_HOME}/homebrew/Brewfile` (if `$XDG_CONFIG_HOME` is set),
   `~/.homebrew/Brewfile` or `~/.Brewfile` otherwise.
 
 `-v`, `--verbose`
@@ -3207,6 +3296,10 @@ flags which will help with finding keg-only dependencies like `openssl`,
 
 : `install` runs `brew upgrade` on outdated dependencies, even if
   `$HOMEBREW_BUNDLE_NO_UPGRADE` is set.
+
+`--install`
+
+: Run `install` before continuing to other operations e.g. `exec`.
 
 `-f`, `--force`
 
@@ -3530,10 +3623,6 @@ and Linux workers.
 `--tested-formulae`
 
 : Use these tested formulae from formulae steps for a formulae dependents step.
-
-### `unalias` *`alias`* \[...\]
-
-Remove aliases.
 
 ### `which-formula` \[`--explain`\] *`command`* \[...\]
 
@@ -4197,6 +4286,11 @@ command execution e.g. `$(cat file)`.
 `HOMEBREW_UPGRADE_GREEDY`
 
 : If set, pass `--greedy` to all cask upgrade commands.
+
+`HOMEBREW_UPGRADE_GREEDY_CASKS`
+
+: A space-separated list of casks. Homebrew will act as if `--greedy` was passed
+  when upgrading any cask on this list.
 
 `HOMEBREW_VERBOSE`
 

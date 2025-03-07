@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 require "livecheck/constants"
+require "livecheck/options"
 require "cask/cask"
 
 # The {Livecheck} class implements the DSL methods used in a formula's, cask's
@@ -15,14 +16,23 @@ require "cask/cask"
 class Livecheck
   extend Forwardable
 
+  # Options to modify livecheck's behavior.
+  sig { returns(Homebrew::Livecheck::Options) }
+  attr_reader :options
+
   # A very brief description of why the formula/cask/resource is skipped (e.g.
   # `No longer developed or maintained`).
   sig { returns(T.nilable(String)) }
   attr_reader :skip_msg
 
+  # A block used by strategies to identify version information.
+  sig { returns(T.nilable(Proc)) }
+  attr_reader :strategy_block
+
   sig { params(package_or_resource: T.any(Cask::Cask, T.class_of(Formula), Resource)).void }
   def initialize(package_or_resource)
     @package_or_resource = package_or_resource
+    @options = T.let(Homebrew::Livecheck::Options.new, Homebrew::Livecheck::Options)
     @referenced_cask_name = T.let(nil, T.nilable(String))
     @referenced_formula_name = T.let(nil, T.nilable(String))
     @regex = T.let(nil, T.nilable(Regexp))
@@ -134,9 +144,6 @@ class Livecheck
     end
   end
 
-  sig { returns(T.nilable(Proc)) }
-  attr_reader :strategy_block
-
   # Sets the `@throttle` instance variable to the provided `Integer` or returns
   # the `@throttle` instance variable when no argument is provided.
   sig {
@@ -158,13 +165,24 @@ class Livecheck
   # `@url` instance variable when no argument is provided. The argument can be
   # a `String` (a URL) or a supported `Symbol` corresponding to a URL in the
   # formula/cask/resource (e.g. `:stable`, `:homepage`, `:head`, `:url`).
+  # Any options provided to the method are passed through to `Strategy` methods
+  # (`page_headers`, `page_content`).
   sig {
     params(
       # URL to check for version information.
-      url: T.any(String, Symbol),
+      url:           T.any(String, Symbol),
+      homebrew_curl: T.nilable(T::Boolean),
+      post_form:     T.nilable(T::Hash[Symbol, String]),
+      post_json:     T.nilable(T::Hash[Symbol, String]),
     ).returns(T.nilable(T.any(String, Symbol)))
   }
-  def url(url = T.unsafe(nil))
+  def url(url = T.unsafe(nil), homebrew_curl: nil, post_form: nil, post_json: nil)
+    raise ArgumentError, "Only use `post_form` or `post_json`, not both" if post_form && post_json
+
+    @options.homebrew_curl = homebrew_curl unless homebrew_curl.nil?
+    @options.post_form = post_form unless post_form.nil?
+    @options.post_json = post_json unless post_json.nil?
+
     case url
     when nil
       @url
@@ -175,6 +193,7 @@ class Livecheck
     end
   end
 
+  delegate url_options: :@options
   delegate version: :@package_or_resource
   delegate arch: :@package_or_resource
   private :version, :arch
@@ -183,6 +202,7 @@ class Livecheck
   sig { returns(T::Hash[String, T.untyped]) }
   def to_hash
     {
+      "options"  => @options.to_hash,
       "cask"     => @referenced_cask_name,
       "formula"  => @referenced_formula_name,
       "regex"    => @regex,
