@@ -1,7 +1,6 @@
 # typed: true # rubocop:todo Sorbet/StrictSigil
 # frozen_string_literal: true
 
-require "attrable"
 require "resource"
 require "download_strategy"
 require "checksum"
@@ -330,11 +329,6 @@ class Bottle
     sig { returns(String) }
     def json
       "#{name}--#{version}.#{tag}.bottle.json"
-    end
-
-    sig { params(checksum: String).returns(String) }
-    def attestation_json(checksum)
-      "#{checksum}-#{name}--#{version}.#{tag}.attestation.json"
     end
 
     def url_encode
